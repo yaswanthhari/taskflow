@@ -2,8 +2,6 @@
 
 > A collaborative task and project tracker for small teams — portfolio project for Software Engineer roles.
 
-[![CI](https://github.com/YOUR_USERNAME/taskflow/actions/workflows/ci.yml/badge.svg)](https://github.com/YOUR_USERNAME/taskflow/actions)
-
 ---
 
 ## ✨ Features
