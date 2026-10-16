@@ -74,6 +74,9 @@ export default function Login() {
           >
             {loading ? 'Signing in…' : 'Sign In'}
           </button>
+          <div style={{ textAlign: 'center', marginTop: 14 }}>
+            <Link to="/forgot-password" style={{ color: '#58a6ff', fontSize: 14 }}>Forgot password?</Link>
+          </div>
         </form>
 
         <p className="auth-footer">

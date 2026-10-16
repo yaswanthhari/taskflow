@@ -3,7 +3,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from app.database import engine, Base
 from app.routers import auth, projects, tasks, dashboard
-
+from app import password_reset
 # Create all tables on startup
 Base.metadata.create_all(bind=engine)
 
@@ -39,6 +39,7 @@ app.include_router(auth.router)
 app.include_router(projects.router)
 app.include_router(tasks.router)
 app.include_router(dashboard.router)
+app.include_router(password_reset.router)
 
 
 @app.get("/health", tags=["health"])
