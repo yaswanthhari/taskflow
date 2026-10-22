@@ -1,184 +1,129 @@
-# TaskFlow — Team Project Management System
+# TaskFlow
 
-> A collaborative task and project tracker for small teams — portfolio project for Software Engineer roles.
+A project and task management app with user accounts, shared projects, a task board and a dashboard.
 
----
+**Live demo:** https://taskflow-ashen-tau.vercel.app
+**API docs (Swagger):** https://taskflow-7oox.onrender.com/docs
 
-## ✨ Features
+> The backend runs on a free Render instance that sleeps when idle. The first request after a quiet period can take up to a minute to wake it up.
 
-- **User authentication** — JWT-based sign-up/sign-in with PBKDF2-SHA256 password hashing
-- **Project management** — Create, update, search, and delete projects
-- **Role-based access** — Admin and member roles enforced server-side
-- **Team membership** — Invite collaborators by email, remove members
-- **Task board** — Kanban-style board (To Do / In Progress / Done) per project
-- **Task management** — Create, edit, assign, prioritise, and set due dates on tasks
-- **Filtering & pagination** — Filter tasks by status, priority, or assignee; paginated API responses
-- **Dashboard** — Overview of open, in-progress, done, and overdue tasks across all projects
-- **Automated tests** — 24 pytest tests covering auth, projects, tasks, and access control
-- **CI** — GitHub Actions runs tests on every push
+## Features
 
----
+- Register and sign in with JWT authentication (PBKDF2 password hashing)
+- **Forgot password:** a 6-digit code is emailed to the user, valid for 10 minutes and usable once
+- Create projects and add members by the email they registered with
+- Create, assign and track tasks inside a project
+- Dashboard with an overview of your projects and tasks
+- Automated tests (pytest) and a GitHub Actions CI workflow
 
-## 🏗 Architecture
-
-```
-taskflow/
-├── backend/                  # FastAPI + SQLAlchemy + SQLite
-│   ├── app/
-│   │   ├── main.py           # App entry + CORS
-│   │   ├── database.py       # SQLAlchemy engine/session
-│   │   ├── models.py         # ORM: User, Project, Membership, Task
-│   │   ├── schemas.py        # Pydantic request/response schemas
-│   │   ├── auth.py           # JWT + PBKDF2 password hashing (pure stdlib)
-│   │   ├── dependencies.py   # get_current_user, membership guards
-│   │   └── routers/          # auth, projects, tasks, dashboard
-│   └── tests/                # pytest test suite (24 tests)
-└── frontend/                 # React 18 + Vite
-    └── src/
-        ├── api/              # Axios client + endpoint helpers
-        ├── context/          # AuthContext (JWT + user state)
-        ├── pages/            # Login, Register, Dashboard, Projects, ProjectDetail
-        └── components/       # Sidebar
-```
-
-### Database Schema
-
-| Table | Key Fields |
-|---|---|
-| `users` | id, email (unique), full_name, hashed_password, role |
-| `projects` | id, name, description, owner_id → users |
-| `project_memberships` | project_id, user_id, role (unique constraint) |
-| `tasks` | id, title, status, priority, project_id, assignee_id, due_date |
-
----
-
-## 🚀 Local Setup
-
-### Prerequisites
-- Python 3.10+ and pip
-- Node.js 18+ and npm
-
-### Backend
-
-```bash
-cd backend
-cp .env.example .env          # edit SECRET_KEY for production
-pip install -r requirements.txt
-uvicorn app.main:app --reload
-# API running at http://localhost:8000
-# Swagger docs at http://localhost:8000/docs
-```
-
-### Frontend
-
-```bash
-cd frontend
-npm install
-npm run dev
-# UI running at http://localhost:5173
-```
-
-### Run Tests
-
-```bash
-cd backend
-python -m pytest tests/ -v
-```
-
----
-
-## 🔌 API Examples
-
-### Register a user
-```http
-POST /auth/register
-Content-Type: application/json
-
-{
-  "email": "alice@example.com",
-  "full_name": "Alice Smith",
-  "password": "securepassword"
-}
-```
-
-### Create a project
-```http
-POST /projects
-Authorization: Bearer <token>
-
-{ "name": "Website Redesign", "description": "Q1 rebrand" }
-```
-
-### Create a task
-```http
-POST /projects/1/tasks
-Authorization: Bearer <token>
-
-{
-  "title": "Design landing page",
-  "priority": "high",
-  "status": "in_progress",
-  "due_date": "2025-02-28"
-}
-```
-
-### Get dashboard stats
-```http
-GET /dashboard
-Authorization: Bearer <token>
-```
-
----
-
-## 🔒 Security
-
-- All task/project endpoints require a valid JWT
-- Project access verified server-side (not just frontend)
-- Admin-only operations (update/delete project, manage members) checked per request
-- Passwords hashed with PBKDF2-HMAC-SHA256 (260k iterations, 16-byte random salt)
-- No secrets committed — use environment variables via `.env`
-
----
-
-## ⚙️ Environment Variables
-
-| Variable | Default | Description |
-|---|---|---|
-| `SECRET_KEY` | `dev-secret-...` | JWT signing key — **change in production** |
-| `ALGORITHM` | `HS256` | JWT algorithm |
-| `ACCESS_TOKEN_EXPIRE_MINUTES` | `10080` (7 days) | Token lifetime |
-| `DATABASE_URL` | `sqlite:///./taskflow.db` | SQLAlchemy DB URL |
-
-For PostgreSQL: `DATABASE_URL=postgresql://user:pass@localhost:5432/taskflow`
-
----
-
-## 🐳 Docker
-
-```bash
-cp backend/.env.example backend/.env
-docker-compose up
-```
-
----
-
-## ⚠️ Known Limitations
-
-- No email verification on sign-up
-- File attachments not supported
-- No real-time updates (polling or WebSockets not implemented)
-- SQLite used locally; PostgreSQL recommended for production
-
----
-
-## 🛠 Tech Stack
+## Tech stack
 
 | Layer | Technology |
 |---|---|
 | Frontend | React 18, Vite, React Router, Axios |
-| Backend | FastAPI, Uvicorn, SQLAlchemy 2.0 |
-| Database | SQLite (local) / PostgreSQL (production) |
-| Auth | PyJWT, PBKDF2-HMAC-SHA256 |
-| Tests | pytest, httpx TestClient |
-| CI | GitHub Actions |
-| CSS | Vanilla CSS, dark glassmorphism theme |
+| Backend | FastAPI, SQLAlchemy 2.0, Pydantic 2 |
+| Database | SQLite locally, PostgreSQL in production |
+| Auth | PyJWT, PBKDF2 |
+| Email | Brevo transactional email API |
+| Tests / CI | pytest, GitHub Actions |
+| Hosting | Vercel (frontend), Render (backend and database) |
+
+## Project structure
+
+```
+taskflow/
+  backend/
+    app/
+      main.py            app setup, CORS, routers
+      auth.py            hashing and JWT helpers
+      database.py        engine and session (SQLite or Postgres)
+      password_reset.py  forgot / reset password endpoints
+      ...                models, schemas, routers
+    tests/
+    .env.example
+  frontend/
+    src/
+      api/client.js      Axios client (reads VITE_API_URL)
+      pages/             Login, Register, ForgotPassword, ...
+```
+
+## Run locally
+
+Requires Python 3.10+ and Node 18+.
+
+**Backend**
+
+```powershell
+cd backend
+py -3.10 -m venv venv
+venv\Scripts\activate
+pip install -r requirements.txt
+uvicorn app.main:app --reload --port 8002
+```
+
+API docs: http://127.0.0.1:8002/docs
+
+**Frontend**
+
+```powershell
+cd frontend
+npm install
+npm run dev
+```
+
+Open http://localhost:5173. By default the frontend talks to `http://127.0.0.1:8002`.
+
+**Tests**
+
+```powershell
+cd backend
+pytest
+```
+
+### Forgot password when running locally
+
+With no `BREVO_API_KEY` set, SQLite as the database, and no `RENDER` variable, the app runs in a local test mode. The reset code is shown on the page and filled in automatically, so you can try the flow without an email service. This mode never turns on in production.
+
+## Environment variables
+
+**Backend (Render)**
+
+| Variable | Purpose |
+|---|---|
+| `DATABASE_URL` | PostgreSQL connection string. Defaults to local SQLite |
+| `SECRET_KEY` | Long random string used to sign tokens and hash reset codes |
+| `CORS_ORIGINS` | Comma-separated frontend URLs, for example the Vercel domain |
+| `BREVO_API_KEY` | Brevo API key, needed to send reset emails |
+| `MAIL_FROM` | Sender address verified in Brevo |
+
+**Frontend (Vercel)**
+
+| Variable | Purpose |
+|---|---|
+| `VITE_API_URL` | Public URL of the backend. Set before the build, and redeploy after changing it |
+
+Never commit real keys. Copy `backend/.env.example` to `backend/.env` for local use.
+
+## Deployment
+
+- **Backend:** Render web service running `uvicorn app.main:app --host 0.0.0.0 --port $PORT`, with a Render PostgreSQL database
+- **Frontend:** Vercel project with root directory `frontend`
+- Pushing to `main` redeploys both automatically
+
+Render's free tier blocks outbound SMTP, so reset emails are sent through Brevo's HTTPS API.
+
+## Password reset emails
+
+Reset codes are sent by email through Brevo's API from a single sender address. Any user who requests a reset on the live site receives a 6-digit code from that address.
+
+- Codes expire after 10 minutes, work once, and lock after 5 wrong attempts
+- One code per email address per minute
+- The reply is the same whether or not the email is registered, so the page can't be used to find out who has an account
+- The free Brevo plan allows 300 emails per day
+- The sender is a personal Gmail address, so messages may land in spam. Authenticating a domain in Brevo would fix that
+
+## Notes
+
+- Free Render PostgreSQL databases expire after 30 days, so recreate or upgrade it when it does.
+- SMS reset codes are not implemented, since they need a paid provider.
+- Possible improvements: per-IP rate limiting on the reset endpoint, and a custom sender domain.
